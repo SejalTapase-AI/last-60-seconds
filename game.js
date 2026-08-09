@@ -67,46 +67,228 @@ let bestScore =
 
 
 // =====================================================
+// MOBILE JOYSTICK
+// =====================================================
+
+const joystick =
+    document.getElementById("joystick");
+
+const joystickKnob =
+    document.getElementById("joystickKnob");
+
+let joystickActive = false;
+
+let joystickX = 0;
+let joystickY = 0;
+
+const joystickRadius = 60;
+
+
+function updateJoystick(
+    clientX,
+    clientY
+) {
+
+    const rect =
+        joystick.getBoundingClientRect();
+
+
+    const centerX =
+        rect.left +
+        rect.width / 2;
+
+    const centerY =
+        rect.top +
+        rect.height / 2;
+
+
+    let dx =
+        clientX - centerX;
+
+    let dy =
+        clientY - centerY;
+
+
+    const distance =
+        Math.hypot(dx, dy);
+
+
+    if (
+        distance > joystickRadius
+    ) {
+
+        dx =
+            (dx / distance) *
+            joystickRadius;
+
+        dy =
+            (dy / distance) *
+            joystickRadius;
+
+    }
+
+
+    joystickX =
+        dx / joystickRadius;
+
+    joystickY =
+        dy / joystickRadius;
+
+
+    joystickKnob.style.transform =
+        `translate(${dx}px, ${dy}px)`;
+
+}
+
+
+function resetJoystick() {
+
+    joystickActive = false;
+
+    joystickX = 0;
+    joystickY = 0;
+
+
+    joystickKnob.style.transform =
+        "translate(0px, 0px)";
+
+}
+
+
+// Touch start
+
+joystick.addEventListener(
+    "touchstart",
+    (event) => {
+
+        event.preventDefault();
+
+        joystickActive = true;
+
+        const touch =
+            event.touches[0];
+
+        updateJoystick(
+            touch.clientX,
+            touch.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+// Touch movement
+
+joystick.addEventListener(
+    "touchmove",
+    (event) => {
+
+        event.preventDefault();
+
+
+        if (!joystickActive) {
+            return;
+        }
+
+
+        const touch =
+            event.touches[0];
+
+
+        updateJoystick(
+            touch.clientX,
+            touch.clientY
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+// Touch release
+
+joystick.addEventListener(
+    "touchend",
+    (event) => {
+
+        event.preventDefault();
+
+        resetJoystick();
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+// =====================================================
 // CONTROLS
 // =====================================================
 
 const keys = {};
 
-window.addEventListener("keydown", (event) => {
 
-    const key = event.key.toLowerCase();
+window.addEventListener(
+    "keydown",
+    (event) => {
 
-    if (
-        gameState === "start" &&
-        key === "enter"
-    ) {
+        const key =
+            event.key.toLowerCase();
 
-        startGame();
 
-        return;
+        // START
+
+        if (
+            gameState === "start" &&
+            key === "enter"
+        ) {
+
+            startGame();
+
+            return;
+
+        }
+
+
+        // RESTART
+
+        if (
+            (
+                gameState === "gameover" ||
+                gameState === "won"
+            ) &&
+            key === "r"
+        ) {
+
+            restartGame();
+
+            return;
+
+        }
+
+
+        keys[key] = true;
+
     }
+);
 
-    if (
-        (gameState === "gameover" ||
-        gameState === "won") &&
-        key === "r"
-    ) {
 
-        restartGame();
+window.addEventListener(
+    "keyup",
+    (event) => {
 
-        return;
+        keys[
+            event.key.toLowerCase()
+        ] = false;
+
     }
-
-    keys[key] = true;
-
-});
-
-
-window.addEventListener("keyup", (event) => {
-
-    keys[event.key.toLowerCase()] = false;
-
-});
+);
 
 
 // =====================================================
@@ -261,32 +443,18 @@ function movePoint() {
 
 function movePlayer() {
 
-    if (
-        keys["w"] ||
-        keys["arrowup"]
-    ) {
-
-        player.y -= player.speed;
-
-    }
+    let moveX = 0;
+    let moveY = 0;
 
 
-    if (
-        keys["s"] ||
-        keys["arrowdown"]
-    ) {
-
-        player.y += player.speed;
-
-    }
-
+    // KEYBOARD
 
     if (
         keys["a"] ||
         keys["arrowleft"]
     ) {
 
-        player.x -= player.speed;
+        moveX -= 1;
 
     }
 
@@ -296,16 +464,78 @@ function movePlayer() {
         keys["arrowright"]
     ) {
 
-        player.x += player.speed;
+        moveX += 1;
 
     }
 
 
+    if (
+        keys["w"] ||
+        keys["arrowup"]
+    ) {
+
+        moveY -= 1;
+
+    }
+
+
+    if (
+        keys["s"] ||
+        keys["arrowdown"]
+    ) {
+
+        moveY += 1;
+
+    }
+
+
+    // MOBILE JOYSTICK
+
+    if (joystickActive) {
+
+        moveX += joystickX;
+
+        moveY += joystickY;
+
+    }
+
+
+    // NORMALIZE
+
+    const magnitude =
+        Math.hypot(
+            moveX,
+            moveY
+        );
+
+
+    if (magnitude > 0) {
+
+        moveX /= magnitude;
+
+        moveY /= magnitude;
+
+    }
+
+
+    // APPLY MOVEMENT
+
+    player.x +=
+        moveX * player.speed;
+
+    player.y +=
+        moveY * player.speed;
+
+
+    // BOUNDARIES
+
     player.x = Math.max(
         player.size / 2,
+
         Math.min(
             canvas.width -
             player.size / 2,
+
             player.x
         )
     );
@@ -313,9 +543,11 @@ function movePlayer() {
 
     player.y = Math.max(
         player.size / 2,
+
         Math.min(
             canvas.height -
             player.size / 2,
+
             player.y
         )
     );
@@ -329,32 +561,40 @@ function movePlayer() {
 
 function moveEnemies() {
 
-    enemies.forEach((enemy) => {
+    enemies.forEach(
+        (enemy) => {
 
-        const dx =
-            player.x - enemy.x;
+            const dx =
+                player.x -
+                enemy.x;
 
-        const dy =
-            player.y - enemy.y;
-
-        const distance =
-            Math.hypot(dx, dy);
+            const dy =
+                player.y -
+                enemy.y;
 
 
-        if (distance === 0) {
-            return;
+            const distance =
+                Math.hypot(
+                    dx,
+                    dy
+                );
+
+
+            if (distance === 0) {
+                return;
+            }
+
+
+            enemy.x +=
+                (dx / distance) *
+                enemy.speed;
+
+            enemy.y +=
+                (dy / distance) *
+                enemy.speed;
+
         }
-
-
-        enemy.x +=
-            (dx / distance) *
-            enemy.speed;
-
-        enemy.y +=
-            (dy / distance) *
-            enemy.speed;
-
-    });
+    );
 
 }
 
@@ -363,9 +603,16 @@ function moveEnemies() {
 // PARTICLES
 // =====================================================
 
-function createParticles(x, y) {
+function createParticles(
+    x,
+    y
+) {
 
-    for (let i = 0; i < 20; i++) {
+    for (
+        let i = 0;
+        i < 20;
+        i++
+    ) {
 
         particles.push({
 
@@ -374,15 +621,18 @@ function createParticles(x, y) {
             y: y,
 
             vx:
-                (Math.random() - 0.5) * 5,
+                (Math.random() - 0.5) *
+                5,
 
             vy:
-                (Math.random() - 0.5) * 5,
+                (Math.random() - 0.5) *
+                5,
 
             life: 1,
 
             size:
-                Math.random() * 4 + 2
+                Math.random() *
+                4 + 2
 
         });
 
@@ -393,15 +643,20 @@ function createParticles(x, y) {
 
 function updateParticles() {
 
-    particles.forEach((particle) => {
+    particles.forEach(
+        (particle) => {
 
-        particle.x += particle.vx;
+            particle.x +=
+                particle.vx;
 
-        particle.y += particle.vy;
+            particle.y +=
+                particle.vy;
 
-        particle.life -= 0.03;
+            particle.life -=
+                0.03;
 
-    });
+        }
+    );
 
 
     particles =
@@ -415,27 +670,32 @@ function updateParticles() {
 
 function drawParticles() {
 
-    particles.forEach((particle) => {
+    particles.forEach(
+        (particle) => {
 
-        ctx.globalAlpha =
-            particle.life;
+            ctx.globalAlpha =
+                particle.life;
 
-        ctx.fillStyle =
-            "#00d9ff";
+            ctx.fillStyle =
+                "#00d9ff";
 
-        ctx.beginPath();
 
-        ctx.arc(
-            particle.x,
-            particle.y,
-            particle.size,
-            0,
-            Math.PI * 2
-        );
+            ctx.beginPath();
 
-        ctx.fill();
 
-    });
+            ctx.arc(
+                particle.x,
+                particle.y,
+                particle.size,
+                0,
+                Math.PI * 2
+            );
+
+
+            ctx.fill();
+
+        }
+    );
 
 
     ctx.globalAlpha = 1;
@@ -453,8 +713,11 @@ function checkCollisions() {
 
     const pointDistance =
         Math.hypot(
-            player.x - point.x,
-            player.y - point.y
+            player.x -
+            point.x,
+
+            player.y -
+            point.y
         );
 
 
@@ -464,7 +727,8 @@ function checkCollisions() {
         point.size
     ) {
 
-        score += point.value;
+        score +=
+            point.value;
 
 
         createParticles(
@@ -480,12 +744,17 @@ function checkCollisions() {
 
     // ENEMIES
 
-    for (const enemy of enemies) {
+    for (
+        const enemy of enemies
+    ) {
 
         const distance =
             Math.hypot(
-                player.x - enemy.x,
-                player.y - enemy.y
+                player.x -
+                enemy.x,
+
+                player.y -
+                enemy.y
             );
 
 
@@ -498,11 +767,17 @@ function checkCollisions() {
             gameState =
                 "gameover";
 
+
             screenShake = 25;
 
             flash = 1;
 
+
             saveBestScore();
+
+
+            resetJoystick();
+
 
             return;
 
@@ -514,12 +789,15 @@ function checkCollisions() {
 
 
 // =====================================================
-// EVENT
+// EVENTS
 // =====================================================
 
-function triggerEvent(message) {
+function triggerEvent(
+    message
+) {
 
-    eventMessage = message;
+    eventMessage =
+        message;
 
     eventTimer = 180;
 
@@ -536,9 +814,7 @@ function updateDifficulty() {
         60 - timeLeft;
 
 
-    // --------------------------------
-    // PHASE 2
-    // --------------------------------
+    // 10 SECONDS
 
     if (
         elapsed >= 10 &&
@@ -547,18 +823,18 @@ function updateDifficulty() {
 
         currentPhase = 2;
 
+
         triggerEvent(
             "🐛 GREAT. ANOTHER BUG."
         );
+
 
         spawnEnemy();
 
     }
 
 
-    // --------------------------------
-    // PHASE 3
-    // --------------------------------
+    // 20 SECONDS
 
     if (
         elapsed >= 20 &&
@@ -567,18 +843,18 @@ function updateDifficulty() {
 
         currentPhase = 3;
 
+
         triggerEvent(
             "📉 REGRESSION DETECTED."
         );
+
 
         spawnEnemy();
 
     }
 
 
-    // --------------------------------
-    // POINT BOOST
-    // --------------------------------
+    // 30 SECONDS
 
     if (
         elapsed >= 30 &&
@@ -589,6 +865,7 @@ function updateDifficulty() {
 
         point.value = 30;
 
+
         triggerEvent(
             "💰 FREE MARKS! DON'T ASK WHY."
         );
@@ -596,9 +873,7 @@ function updateDifficulty() {
     }
 
 
-    // --------------------------------
-    // PHASE 4
-    // --------------------------------
+    // 40 SECONDS
 
     if (
         elapsed >= 40 &&
@@ -607,24 +882,29 @@ function updateDifficulty() {
 
         currentPhase = 4;
 
+
         triggerEvent(
             "👥 GROUP PROJECT MODE."
         );
+
 
         spawnEnemy();
 
     }
 
 
-    // --------------------------------
     // FINAL 10 SECONDS
-    // --------------------------------
 
-    if (timeLeft <= 10) {
+    if (
+        timeLeft <= 10
+    ) {
 
-        if (currentPhase < 5) {
+        if (
+            currentPhase < 5
+        ) {
 
             currentPhase = 5;
+
 
             triggerEvent(
                 "🚨 DEADLINE INCOMING."
@@ -633,15 +913,19 @@ function updateDifficulty() {
         }
 
 
-        enemies.forEach((enemy) => {
+        enemies.forEach(
+            (enemy) => {
 
-            enemy.speed =
-                Math.min(
-                    enemy.speed + 0.001,
-                    4
-                );
+                enemy.speed =
+                    Math.min(
+                        enemy.speed +
+                        0.001,
 
-        });
+                        4
+                    );
+
+            }
+        );
 
     }
 
@@ -657,21 +941,27 @@ function update() {
     updateParticles();
 
 
-    if (screenShake > 0) {
+    if (
+        screenShake > 0
+    ) {
 
         screenShake *= 0.9;
 
     }
 
 
-    if (flash > 0) {
+    if (
+        flash > 0
+    ) {
 
         flash -= 0.05;
 
     }
 
 
-    if (eventTimer > 0) {
+    if (
+        eventTimer > 0
+    ) {
 
         eventTimer--;
 
@@ -710,6 +1000,7 @@ function drawGrid() {
     ctx.strokeStyle =
         "rgba(0, 217, 255, 0.07)";
 
+
     ctx.lineWidth = 1;
 
 
@@ -721,7 +1012,10 @@ function drawGrid() {
 
         ctx.beginPath();
 
-        ctx.moveTo(x, 0);
+        ctx.moveTo(
+            x,
+            0
+        );
 
         ctx.lineTo(
             x,
@@ -741,7 +1035,10 @@ function drawGrid() {
 
         ctx.beginPath();
 
-        ctx.moveTo(0, y);
+        ctx.moveTo(
+            0,
+            y
+        );
 
         ctx.lineTo(
             canvas.width,
@@ -763,10 +1060,12 @@ function drawPlayer() {
 
     ctx.save();
 
+
     ctx.shadowBlur = 25;
 
     ctx.shadowColor =
         "#00ff88";
+
 
     ctx.fillStyle =
         "#00ff88";
@@ -785,34 +1084,43 @@ function drawPlayer() {
     );
 
 
-    // Funny face
+    // FACE
 
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
         "#06100b";
 
+
     ctx.font =
         "bold 14px Arial";
+
 
     ctx.textAlign =
         "center";
 
+
     ctx.fillText(
         "• •",
+
         player.x,
+
         player.y - 1
     );
 
+
     ctx.fillText(
         "ᴗ",
+
         player.x,
+
         player.y + 12
     );
 
 
     ctx.textAlign =
         "left";
+
 
     ctx.restore();
 
@@ -830,6 +1138,7 @@ function drawPoint() {
 
     ctx.shadowBlur = 35;
 
+
     ctx.shadowColor =
         pointBoost
             ? "#ffcc00"
@@ -844,6 +1153,7 @@ function drawPoint() {
 
     ctx.beginPath();
 
+
     ctx.arc(
         point.x,
         point.y,
@@ -851,6 +1161,7 @@ function drawPoint() {
         0,
         Math.PI * 2
     );
+
 
     ctx.fill();
 
@@ -866,68 +1177,77 @@ function drawPoint() {
 
 function drawEnemies() {
 
-    enemies.forEach((enemy) => {
+    enemies.forEach(
+        (enemy) => {
 
-        ctx.save();
-
-
-        ctx.shadowBlur = 30;
-
-        ctx.shadowColor =
-            "#ff304f";
-
-        ctx.fillStyle =
-            "#ff304f";
+            ctx.save();
 
 
-        ctx.fillRect(
-            enemy.x -
-            enemy.size / 2,
+            ctx.shadowBlur = 30;
 
-            enemy.y -
-            enemy.size / 2,
-
-            enemy.size,
-
-            enemy.size
-        );
+            ctx.shadowColor =
+                "#ff304f";
 
 
-        // Funny face
-
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle =
-            "#1a0005";
-
-        ctx.font =
-            "bold 13px Arial";
-
-        ctx.textAlign =
-            "center";
+            ctx.fillStyle =
+                "#ff304f";
 
 
-        ctx.fillText(
-            "× ×",
-            enemy.x,
-            enemy.y
-        );
+            ctx.fillRect(
+                enemy.x -
+                enemy.size / 2,
+
+                enemy.y -
+                enemy.size / 2,
+
+                enemy.size,
+
+                enemy.size
+            );
 
 
-        ctx.fillText(
-            "▿",
-            enemy.x,
-            enemy.y + 11
-        );
+            // FACE
+
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle =
+                "#1a0005";
 
 
-        ctx.textAlign =
-            "left";
+            ctx.font =
+                "bold 13px Arial";
 
 
-        ctx.restore();
+            ctx.textAlign =
+                "center";
 
-    });
+
+            ctx.fillText(
+                "× ×",
+
+                enemy.x,
+
+                enemy.y
+            );
+
+
+            ctx.fillText(
+                "▿",
+
+                enemy.x,
+
+                enemy.y + 11
+            );
+
+
+            ctx.textAlign =
+                "left";
+
+
+            ctx.restore();
+
+        }
+    );
 
 }
 
@@ -943,8 +1263,10 @@ function drawHUD() {
     ctx.fillStyle =
         "#888";
 
+
     ctx.font =
         "bold 14px Arial";
+
 
     ctx.fillText(
         "SCORE",
@@ -958,8 +1280,10 @@ function drawHUD() {
             ? "#ffcc00"
             : "#00d9ff";
 
+
     ctx.font =
         "bold 28px Arial";
+
 
     ctx.fillText(
         score,
@@ -973,27 +1297,35 @@ function drawHUD() {
     ctx.fillStyle =
         "#888";
 
+
     ctx.font =
         "14px Arial";
 
+
     ctx.fillText(
         `BEST: ${bestScore}`,
+
         30,
+
         82
     );
 
 
-    // TIMER
+    // DEADLINE
 
     ctx.fillStyle =
         "#888";
 
+
     ctx.font =
         "bold 14px Arial";
 
+
     ctx.fillText(
         "DEADLINE",
+
         canvas.width - 155,
+
         30
     );
 
@@ -1003,34 +1335,44 @@ function drawHUD() {
             ? "#ff304f"
             : "#00ff88";
 
+
     ctx.font =
         "bold 28px Arial";
 
+
     ctx.fillText(
         `${Math.ceil(timeLeft)}s`,
+
         canvas.width - 75,
+
         60
     );
 
 
-    // THREAT
+    // BUGS
 
     ctx.fillStyle =
         "#888";
 
+
     ctx.font =
         "14px Arial";
 
+
     ctx.fillText(
         `BUGS: ${enemies.length}`,
+
         30,
+
         canvas.height - 25
     );
 
 
     ctx.fillText(
         `PHASE: ${currentPhase}`,
+
         canvas.width - 100,
+
         canvas.height - 25
     );
 
@@ -1054,6 +1396,7 @@ function drawEventMessage() {
 
     ctx.save();
 
+
     ctx.textAlign =
         "center";
 
@@ -1068,13 +1411,16 @@ function drawEventMessage() {
     ctx.fillStyle =
         "#ffcc00";
 
+
     ctx.font =
         "bold 26px Arial";
 
 
     ctx.fillText(
         eventMessage,
+
         canvas.width / 2,
+
         110
     );
 
@@ -1103,13 +1449,16 @@ function drawStartScreen() {
     ctx.fillStyle =
         "#00ff88";
 
+
     ctx.font =
         "bold 68px Arial";
 
 
     ctx.fillText(
         "THE LAST 60 SECONDS",
+
         canvas.width / 2,
+
         canvas.height / 2 - 100
     );
 
@@ -1120,13 +1469,16 @@ function drawStartScreen() {
     ctx.fillStyle =
         "white";
 
+
     ctx.font =
         "20px Arial";
 
 
     ctx.fillText(
         "Collect points. Avoid bugs. Regret everything.",
+
         canvas.width / 2,
+
         canvas.height / 2 - 45
     );
 
@@ -1134,13 +1486,16 @@ function drawStartScreen() {
     ctx.fillStyle =
         "#aaa";
 
+
     ctx.font =
         "18px Arial";
 
 
     ctx.fillText(
         "The longer you survive, the worse your life gets.",
+
         canvas.width / 2,
+
         canvas.height / 2
     );
 
@@ -1148,13 +1503,16 @@ function drawStartScreen() {
     ctx.fillStyle =
         "#00ff88";
 
+
     ctx.font =
         "bold 24px Arial";
 
 
     ctx.fillText(
         "[ PRESS ENTER TO START ]",
+
         canvas.width / 2,
+
         canvas.height / 2 + 90
     );
 
@@ -1162,13 +1520,16 @@ function drawStartScreen() {
     ctx.fillStyle =
         "#666";
 
+
     ctx.font =
         "14px Arial";
 
 
     ctx.fillText(
         "WASD / ARROW KEYS",
+
         canvas.width / 2,
+
         canvas.height / 2 + 135
     );
 
@@ -1185,11 +1546,20 @@ function drawStartScreen() {
 
 function getRating() {
 
-    if (score >= 500) return "S+";
-    if (score >= 400) return "S";
-    if (score >= 300) return "A";
-    if (score >= 200) return "B";
-    if (score >= 100) return "C";
+    if (score >= 500)
+        return "S+";
+
+    if (score >= 400)
+        return "S";
+
+    if (score >= 300)
+        return "A";
+
+    if (score >= 200)
+        return "B";
+
+    if (score >= 100)
+        return "C";
 
     return "F";
 
@@ -1202,27 +1572,28 @@ function getComment() {
         getRating();
 
 
-    if (rating === "S+") {
+    if (rating === "S+")
         return "Please touch grass.";
-    }
 
-    if (rating === "S") {
+
+    if (rating === "S")
         return "Absolutely unhinged.";
-    }
 
-    if (rating === "A") {
+
+    if (rating === "A")
         return "Okay, show-off.";
-    }
 
-    if (rating === "B") {
+
+    if (rating === "B")
         return "Respectable.";
-    }
 
-    if (rating === "C") {
+
+    if (rating === "C")
         return "You survived. Barely.";
-    }
+
 
     return "The deadline won.";
+
 }
 
 
@@ -1232,9 +1603,13 @@ function getComment() {
 
 function saveBestScore() {
 
-    if (score > bestScore) {
+    if (
+        score > bestScore
+    ) {
 
-        bestScore = score;
+        bestScore =
+            score;
+
 
         localStorage.setItem(
             "last60Best",
@@ -1257,6 +1632,7 @@ function drawEndScreen() {
 
     ctx.fillStyle =
         "rgba(0, 0, 0, 0.88)";
+
 
     ctx.fillRect(
         0,
@@ -1288,13 +1664,16 @@ function drawEndScreen() {
         survived
             ? "YOU ACTUALLY DID IT"
             : "YOU GOT COOKED",
+
         canvas.width / 2,
+
         canvas.height / 2 - 100
     );
 
 
     ctx.fillStyle =
         "white";
+
 
     ctx.font =
         "20px Arial";
@@ -1304,15 +1683,16 @@ function drawEndScreen() {
         survived
             ? "The deadline has been defeated."
             : "The bugs have claimed another victim.",
+
         canvas.width / 2,
+
         canvas.height / 2 - 55
     );
 
 
-    // SCORE
-
     ctx.fillStyle =
         "#00d9ff";
+
 
     ctx.font =
         "bold 32px Arial";
@@ -1320,15 +1700,16 @@ function drawEndScreen() {
 
     ctx.fillText(
         `SCORE: ${score}`,
+
         canvas.width / 2,
+
         canvas.height / 2
     );
 
 
-    // BEST
-
     ctx.fillStyle =
         "#aaa";
+
 
     ctx.font =
         "18px Arial";
@@ -1336,15 +1717,16 @@ function drawEndScreen() {
 
     ctx.fillText(
         `BEST: ${bestScore}`,
+
         canvas.width / 2,
+
         canvas.height / 2 + 35
     );
 
 
-    // RATING
-
     ctx.fillStyle =
         "#ffcc00";
+
 
     ctx.font =
         "bold 42px Arial";
@@ -1352,15 +1734,16 @@ function drawEndScreen() {
 
     ctx.fillText(
         `RATING: ${getRating()}`,
+
         canvas.width / 2,
+
         canvas.height / 2 + 85
     );
 
 
-    // COMMENT
-
     ctx.fillStyle =
         "white";
+
 
     ctx.font =
         "18px Arial";
@@ -1368,15 +1751,16 @@ function drawEndScreen() {
 
     ctx.fillText(
         `"${getComment()}"`,
+
         canvas.width / 2,
+
         canvas.height / 2 + 125
     );
 
 
-    // REPLAY
-
     ctx.fillStyle =
         "#00ff88";
+
 
     ctx.font =
         "bold 20px Arial";
@@ -1384,7 +1768,9 @@ function drawEndScreen() {
 
     ctx.fillText(
         "[ R ] TRY AGAIN",
+
         canvas.width / 2,
+
         canvas.height / 2 + 180
     );
 
@@ -1416,7 +1802,7 @@ function draw() {
     drawGrid();
 
 
-    // START
+    // START SCREEN
 
     if (
         gameState === "start"
@@ -1429,7 +1815,7 @@ function draw() {
     }
 
 
-    // SHAKE
+    // SCREEN SHAKE
 
     ctx.save();
 
@@ -1441,6 +1827,7 @@ function draw() {
         const shakeX =
             (Math.random() - 0.5) *
             screenShake;
+
 
         const shakeY =
             (Math.random() - 0.5) *
@@ -1472,7 +1859,7 @@ function draw() {
     drawEventMessage();
 
 
-    // END
+    // END SCREEN
 
     if (
         gameState === "gameover" ||
@@ -1510,30 +1897,38 @@ function draw() {
 // TIMER
 // =====================================================
 
-setInterval(() => {
-
-    if (
-        gameState === "playing"
-    ) {
-
-        timeLeft--;
-
+setInterval(
+    () => {
 
         if (
-            timeLeft <= 0
+            gameState === "playing"
         ) {
 
-            timeLeft = 0;
+            timeLeft--;
 
-            gameState = "won";
 
-            saveBestScore();
+            if (
+                timeLeft <= 0
+            ) {
+
+                timeLeft = 0;
+
+                gameState =
+                    "won";
+
+
+                saveBestScore();
+
+                resetJoystick();
+
+            }
 
         }
 
-    }
+    },
 
-}, 1000);
+    1000
+);
 
 
 // =====================================================
@@ -1548,7 +1943,8 @@ function restartGame() {
 
     currentPhase = 1;
 
-    gameState = "playing";
+    gameState =
+        "playing";
 
     particles = [];
 
@@ -1574,11 +1970,51 @@ function restartGame() {
         canvas.height / 2;
 
 
+    resetJoystick();
+
+
     spawnEnemy();
 
     movePoint();
 
 }
+
+
+// =====================================================
+// RESPONSIVE CANVAS
+// =====================================================
+
+function resizeCanvas() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+
+
+    player.x =
+        Math.min(
+            player.x,
+            canvas.width -
+            player.size / 2
+        );
+
+
+    player.y =
+        Math.min(
+            player.y,
+            canvas.height -
+            player.size / 2
+        );
+
+}
+
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
 
 
 // =====================================================
