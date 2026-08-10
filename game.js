@@ -1,14 +1,9 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const mobileAction =
-    document.getElementById("mobileAction");
-
-const joystick =
-    document.getElementById("joystick");
-
-const joystickKnob =
-    document.getElementById("joystickKnob");
+const mobileAction = document.getElementById("mobileAction");
+const joystick = document.getElementById("joystick");
+const joystickKnob = document.getElementById("joystickKnob");
 
 
 /* =========================================
@@ -16,12 +11,10 @@ const joystickKnob =
 ========================================= */
 
 function resizeCanvas() {
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
     if (player) {
-
         player.x = Math.min(
             player.x,
             canvas.width - player.size / 2
@@ -31,7 +24,6 @@ function resizeCanvas() {
             player.y,
             canvas.height - player.size / 2
         );
-
     }
 }
 
@@ -41,14 +33,10 @@ function resizeCanvas() {
 ========================================= */
 
 const player = {
-
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
-
     size: 30,
-
     speed: 5
-
 };
 
 
@@ -57,14 +45,10 @@ const player = {
 ========================================= */
 
 const point = {
-
     x: 100,
     y: 100,
-
     size: 11,
-
     value: 10
-
 };
 
 
@@ -73,11 +57,9 @@ const point = {
 ========================================= */
 
 let enemies = [];
-
 let particles = [];
 
 let score = 0;
-
 let timeLeft = 60;
 
 let gameState = "start";
@@ -85,11 +67,9 @@ let gameState = "start";
 let currentPhase = 1;
 
 let screenShake = 0;
-
 let flash = 0;
 
 let eventMessage = "";
-
 let eventTimer = 0;
 
 let pointBoost = false;
@@ -100,11 +80,7 @@ let pointBoost = false;
 ========================================= */
 
 let bestScore =
-    Number(
-        localStorage.getItem(
-            "last60Best"
-        )
-    ) || 0;
+    Number(localStorage.getItem("last60Best")) || 0;
 
 
 /* =========================================
@@ -112,11 +88,9 @@ let bestScore =
 ========================================= */
 
 function isMobile() {
-
     return window.matchMedia(
         "(hover: none) and (pointer: coarse)"
     ).matches;
-
 }
 
 
@@ -127,25 +101,19 @@ function isMobile() {
 let joystickActive = false;
 
 let joystickX = 0;
-
 let joystickY = 0;
 
 
-function updateJoystick(
-    clientX,
-    clientY
-) {
+function updateJoystick(clientX, clientY) {
 
     const rect =
         joystick.getBoundingClientRect();
 
     const centerX =
-        rect.left +
-        rect.width / 2;
+        rect.left + rect.width / 2;
 
     const centerY =
-        rect.top +
-        rect.height / 2;
+        rect.top + rect.height / 2;
 
     let dx =
         clientX - centerX;
@@ -154,10 +122,7 @@ function updateJoystick(
         clientY - centerY;
 
     const distance =
-        Math.hypot(
-            dx,
-            dy
-        );
+        Math.hypot(dx, dy);
 
     const radius =
         rect.width / 2;
@@ -166,41 +131,30 @@ function updateJoystick(
     if (distance > radius) {
 
         dx =
-            (dx / distance) *
-            radius;
+            (dx / distance) * radius;
 
         dy =
-            (dy / distance) *
-            radius;
+            (dy / distance) * radius;
 
     }
 
 
-    joystickX =
-        dx / radius;
-
-    joystickY =
-        dy / radius;
+    joystickX = dx / radius;
+    joystickY = dy / radius;
 
 
     const knobLimit =
         radius - 27.5;
 
     const knobX =
-        joystickX *
-        knobLimit;
+        joystickX * knobLimit;
 
     const knobY =
-        joystickY *
-        knobLimit;
+        joystickY * knobLimit;
 
 
     joystickKnob.style.transform =
-        `translate(
-            ${knobX}px,
-            ${knobY}px
-        )`;
-
+        `translate(${knobX}px, ${knobY}px)`;
 }
 
 
@@ -209,12 +163,10 @@ function resetJoystick() {
     joystickActive = false;
 
     joystickX = 0;
-
     joystickY = 0;
 
     joystickKnob.style.transform =
         "translate(0, 0)";
-
 }
 
 
@@ -239,9 +191,7 @@ joystick.addEventListener(
         );
 
     },
-    {
-        passive: false
-    }
+    { passive: false }
 );
 
 
@@ -263,9 +213,7 @@ joystick.addEventListener(
         );
 
     },
-    {
-        passive: false
-    }
+    { passive: false }
 );
 
 
@@ -278,9 +226,7 @@ joystick.addEventListener(
         resetJoystick();
 
     },
-    {
-        passive: false
-    }
+    { passive: false }
 );
 
 
@@ -307,7 +253,6 @@ window.addEventListener(
             startGame();
 
             return;
-
         }
 
 
@@ -322,7 +267,6 @@ window.addEventListener(
             restartGame();
 
             return;
-
         }
 
 
@@ -352,9 +296,7 @@ mobileAction.addEventListener(
     "click",
     () => {
 
-        if (
-            gameState === "start"
-        ) {
+        if (gameState === "start") {
 
             startGame();
 
@@ -383,9 +325,7 @@ function updateMobileButton() {
         return;
 
 
-    if (
-        gameState === "start"
-    ) {
+    if (gameState === "start") {
 
         mobileAction.textContent =
             "TAP TO START";
@@ -463,7 +403,6 @@ function startGame() {
     resetJoystick();
 
     updateMobileButton();
-
 }
 
 
@@ -472,9 +411,7 @@ function startGame() {
 ========================================= */
 
 function restartGame() {
-
     startGame();
-
 }
 
 
@@ -485,9 +422,7 @@ function restartGame() {
 function spawnEnemy() {
 
     const side =
-        Math.floor(
-            Math.random() * 4
-        );
+        Math.floor(Math.random() * 4);
 
 
     let x;
@@ -540,7 +475,6 @@ function spawnEnemy() {
     enemies.push({
 
         x,
-
         y,
 
         size: 30,
@@ -585,13 +519,10 @@ function movePoint() {
 function movePlayer() {
 
     let moveX = 0;
-
     let moveY = 0;
 
 
-    /* -------------------------------------
-       KEYBOARD INPUT
-    ------------------------------------- */
+    /* KEYBOARD */
 
     if (
         keys["a"] ||
@@ -621,30 +552,21 @@ function movePlayer() {
         moveY += 1;
 
 
-    /* -------------------------------------
-       JOYSTICK INPUT
-    ------------------------------------- */
+    /* JOYSTICK */
 
     if (joystickActive) {
 
         moveX = joystickX;
-
         moveY = joystickY;
 
     }
 
 
     const magnitude =
-        Math.hypot(
-            moveX,
-            moveY
-        );
+        Math.hypot(moveX, moveY);
 
 
-    /* =====================================
-       KEYBOARD MOVEMENT
-       Full speed
-    ===================================== */
+    /* KEYBOARD NORMALIZATION */
 
     if (!joystickActive) {
 
@@ -658,52 +580,26 @@ function movePlayer() {
     }
 
 
-    /* =====================================
-       JOYSTICK MOVEMENT
-       VARIABLE SPEED
-    ===================================== */
+    /* JOYSTICK DEAD ZONE */
 
     else {
 
         const deadZone = 0.15;
 
 
-        /* Tiny movements are ignored */
-
-        if (
-            magnitude < deadZone
-        ) {
+        if (magnitude < deadZone) {
 
             moveX = 0;
-
             moveY = 0;
 
         }
 
         else {
 
-            /*
-             * Remove the dead zone.
-             *
-             * Example:
-             *
-             * 0.15 = barely moving
-             * 0.50 = medium movement
-             * 1.00 = full movement
-             */
-
             const adjustedMagnitude =
                 (magnitude - deadZone) /
                 (1 - deadZone);
 
-
-            /*
-             * Smooth acceleration.
-             *
-             * Squaring the value makes
-             * small joystick movements
-             * much slower.
-             */
 
             const smoothMagnitude =
                 adjustedMagnitude *
@@ -723,22 +619,16 @@ function movePlayer() {
     }
 
 
-    /* =====================================
-       APPLY MOVEMENT
-    ===================================== */
+    /* APPLY */
 
     player.x +=
-        moveX *
-        player.speed;
+        moveX * player.speed;
 
     player.y +=
-        moveY *
-        player.speed;
+        moveY * player.speed;
 
 
-    /* =====================================
-       SCREEN BOUNDARIES
-    ===================================== */
+    /* BOUNDARIES */
 
     player.x =
         Math.max(
@@ -769,49 +659,36 @@ function movePlayer() {
 
 
 /* =========================================
-   MOVE ENEMIES
+   ENEMY MOVEMENT
 ========================================= */
 
 function moveEnemies() {
 
-    enemies.forEach(
-        enemy => {
+    enemies.forEach(enemy => {
 
-            const dx =
-                player.x -
-                enemy.x;
+        const dx =
+            player.x - enemy.x;
 
-            const dy =
-                player.y -
-                enemy.y;
+        const dy =
+            player.y - enemy.y;
 
-            const distance =
-                Math.hypot(
-                    dx,
-                    dy
-                );
+        const distance =
+            Math.hypot(dx, dy);
 
 
-            if (
-                distance === 0
-            )
-                return;
+        if (distance === 0)
+            return;
 
 
-            enemy.x +=
-                (
-                    dx / distance
-                ) *
-                enemy.speed;
+        enemy.x +=
+            (dx / distance) *
+            enemy.speed;
 
-            enemy.y +=
-                (
-                    dy / distance
-                ) *
-                enemy.speed;
+        enemy.y +=
+            (dy / distance) *
+            enemy.speed;
 
-        }
-    );
+    });
 
 }
 
@@ -820,40 +697,25 @@ function moveEnemies() {
    PARTICLES
 ========================================= */
 
-function createParticles(
-    x,
-    y
-) {
+function createParticles(x, y) {
 
-    for (
-        let i = 0;
-        i < 20;
-        i++
-    ) {
+    for (let i = 0; i < 20; i++) {
 
         particles.push({
 
             x,
-
             y,
 
             vx:
-                (
-                    Math.random() -
-                    0.5
-                ) * 5,
+                (Math.random() - 0.5) * 5,
 
             vy:
-                (
-                    Math.random() -
-                    0.5
-                ) * 5,
+                (Math.random() - 0.5) * 5,
 
             life: 1,
 
             size:
-                Math.random() *
-                4 + 2
+                Math.random() * 4 + 2
 
         });
 
@@ -864,20 +726,15 @@ function createParticles(
 
 function updateParticles() {
 
-    particles.forEach(
-        particle => {
+    particles.forEach(particle => {
 
-            particle.x +=
-                particle.vx;
+        particle.x += particle.vx;
 
-            particle.y +=
-                particle.vy;
+        particle.y += particle.vy;
 
-            particle.life -=
-                0.03;
+        particle.life -= 0.03;
 
-        }
-    );
+    });
 
 
     particles =
@@ -891,32 +748,28 @@ function updateParticles() {
 
 function drawParticles() {
 
-    particles.forEach(
-        particle => {
+    particles.forEach(particle => {
 
-            ctx.globalAlpha =
-                particle.life;
+        ctx.globalAlpha =
+            particle.life;
 
-            ctx.fillStyle =
-                "#00d9ff";
-
-
-            ctx.beginPath();
+        ctx.fillStyle =
+            "#00d9ff";
 
 
-            ctx.arc(
-                particle.x,
-                particle.y,
-                particle.size,
-                0,
-                Math.PI * 2
-            );
+        ctx.beginPath();
 
+        ctx.arc(
+            particle.x,
+            particle.y,
+            particle.size,
+            0,
+            Math.PI * 2
+        );
 
-            ctx.fill();
+        ctx.fill();
 
-        }
-    );
+    });
 
 
     ctx.globalAlpha = 1;
@@ -932,11 +785,8 @@ function checkCollisions() {
 
     const pointDistance =
         Math.hypot(
-            player.x -
-            point.x,
-
-            player.y -
-            point.y
+            player.x - point.x,
+            player.y - point.y
         );
 
 
@@ -946,8 +796,7 @@ function checkCollisions() {
         point.size
     ) {
 
-        score +=
-            point.value;
+        score += point.value;
 
 
         createParticles(
@@ -961,17 +810,12 @@ function checkCollisions() {
     }
 
 
-    for (
-        const enemy of enemies
-    ) {
+    for (const enemy of enemies) {
 
         const distance =
             Math.hypot(
-                player.x -
-                enemy.x,
-
-                player.y -
-                enemy.y
+                player.x - enemy.x,
+                player.y - enemy.y
             );
 
 
@@ -1007,9 +851,7 @@ function checkCollisions() {
    EVENTS
 ========================================= */
 
-function triggerEvent(
-    message
-) {
+function triggerEvent(message) {
 
     eventMessage =
         message;
@@ -1093,13 +935,9 @@ function updateDifficulty() {
     }
 
 
-    if (
-        timeLeft <= 10
-    ) {
+    if (timeLeft <= 10) {
 
-        if (
-            currentPhase < 5
-        ) {
+        if (currentPhase < 5) {
 
             currentPhase = 5;
 
@@ -1110,19 +948,15 @@ function updateDifficulty() {
         }
 
 
-        enemies.forEach(
-            enemy => {
+        enemies.forEach(enemy => {
 
-                enemy.speed =
-                    Math.min(
-                        enemy.speed +
-                        0.001,
+            enemy.speed =
+                Math.min(
+                    enemy.speed + 0.001,
+                    4
+                );
 
-                        4
-                    );
-
-            }
-        );
+        });
 
     }
 
@@ -1138,36 +972,28 @@ function update() {
     updateParticles();
 
 
-    if (
-        screenShake > 0
-    ) {
+    if (screenShake > 0) {
 
         screenShake *= 0.9;
 
     }
 
 
-    if (
-        flash > 0
-    ) {
+    if (flash > 0) {
 
         flash -= 0.05;
 
     }
 
 
-    if (
-        eventTimer > 0
-    ) {
+    if (eventTimer > 0) {
 
         eventTimer--;
 
     }
 
 
-    if (
-        gameState !== "playing"
-    ) {
+    if (gameState !== "playing") {
 
         return;
 
@@ -1208,10 +1034,7 @@ function drawGrid() {
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            x,
-            0
-        );
+        ctx.moveTo(x, 0);
 
         ctx.lineTo(
             x,
@@ -1231,10 +1054,7 @@ function drawGrid() {
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            0,
-            y
-        );
+        ctx.moveTo(0, y);
 
         ctx.lineTo(
             canvas.width,
@@ -1273,7 +1093,6 @@ function drawPlayer() {
         player.size / 2,
 
         player.size,
-
         player.size
     );
 
@@ -1292,18 +1111,14 @@ function drawPlayer() {
 
     ctx.fillText(
         "• •",
-
         player.x,
-
         player.y - 1
     );
 
 
     ctx.fillText(
         "ᴗ",
-
         player.x,
-
         player.y + 12
     );
 
@@ -1339,7 +1154,6 @@ function drawPoint() {
 
     ctx.beginPath();
 
-
     ctx.arc(
         point.x,
         point.y,
@@ -1347,7 +1161,6 @@ function drawPoint() {
         0,
         Math.PI * 2
     );
-
 
     ctx.fill();
 
@@ -1362,76 +1175,69 @@ function drawPoint() {
 
 function drawEnemies() {
 
-    enemies.forEach(
-        enemy => {
+    enemies.forEach(enemy => {
 
-            ctx.save();
+        ctx.save();
 
-            ctx.shadowBlur = 30;
+        ctx.shadowBlur = 30;
 
-            ctx.shadowColor =
-                "#ff304f";
+        ctx.shadowColor =
+            "#ff304f";
 
-            ctx.fillStyle =
-                "#ff304f";
-
-
-            ctx.fillRect(
-                enemy.x -
-                enemy.size / 2,
-
-                enemy.y -
-                enemy.size / 2,
-
-                enemy.size,
-
-                enemy.size
-            );
+        ctx.fillStyle =
+            "#ff304f";
 
 
-            ctx.shadowBlur = 0;
+        ctx.fillRect(
+            enemy.x -
+            enemy.size / 2,
 
-            ctx.fillStyle =
-                "#1a0005";
+            enemy.y -
+            enemy.size / 2,
 
-            ctx.font =
-                "bold 13px Arial";
-
-            ctx.textAlign =
-                "center";
-
-
-            ctx.fillText(
-                "× ×",
-
-                enemy.x,
-
-                enemy.y
-            );
+            enemy.size,
+            enemy.size
+        );
 
 
-            ctx.fillText(
-                "▿",
+        ctx.shadowBlur = 0;
 
-                enemy.x,
+        ctx.fillStyle =
+            "#1a0005";
 
-                enemy.y + 11
-            );
+        ctx.font =
+            "bold 13px Arial";
+
+        ctx.textAlign =
+            "center";
 
 
-            ctx.textAlign =
-                "left";
+        ctx.fillText(
+            "× ×",
+            enemy.x,
+            enemy.y
+        );
 
-            ctx.restore();
 
-        }
-    );
+        ctx.fillText(
+            "▿",
+            enemy.x,
+            enemy.y + 11
+        );
+
+
+        ctx.textAlign =
+            "left";
+
+        ctx.restore();
+
+    });
 
 }
 
 
 /* =========================================
-   RESPONSIVE SCALE
+   SCALE
 ========================================= */
 
 function getScale() {
@@ -1485,9 +1291,7 @@ function drawHUD() {
 
     ctx.fillText(
         "SCORE",
-
         margin,
-
         margin
     );
 
@@ -1504,9 +1308,7 @@ function drawHUD() {
 
     ctx.fillText(
         score,
-
         margin,
-
         margin + scoreSize
     );
 
@@ -1520,9 +1322,7 @@ function drawHUD() {
 
     ctx.fillText(
         `BEST: ${bestScore}`,
-
         margin,
-
         margin +
         scoreSize +
         22
@@ -1544,9 +1344,7 @@ function drawHUD() {
 
     ctx.fillText(
         "DEADLINE",
-
         deadlineX,
-
         margin
     );
 
@@ -1563,9 +1361,7 @@ function drawHUD() {
 
     ctx.fillText(
         `${Math.ceil(timeLeft)}s`,
-
         deadlineX,
-
         margin + scoreSize
     );
 
@@ -1579,23 +1375,17 @@ function drawHUD() {
 
     ctx.fillText(
         `BUGS: ${enemies.length}`,
-
         margin,
-
-        canvas.height -
-        20
+        canvas.height - 20
     );
 
 
     ctx.fillText(
         `PHASE: ${currentPhase}`,
-
         canvas.width -
         margin -
         70,
-
-        canvas.height -
-        20
+        canvas.height - 20
     );
 
 }
@@ -1607,9 +1397,7 @@ function drawHUD() {
 
 function drawEventMessage() {
 
-    if (
-        eventTimer <= 0
-    )
+    if (eventTimer <= 0)
         return;
 
 
@@ -1665,17 +1453,47 @@ function drawStartScreen() {
         isMobile();
 
 
+    /*
+       Everything below is positioned
+       vertically from the previous element.
+       This prevents overlap on mobile.
+    */
+
     const scale =
         mobile
             ? Math.min(
                 canvas.width / 420,
                 canvas.height / 850
             )
-            : getScale();
+            : Math.min(
+                canvas.width / 1000,
+                canvas.height / 700,
+                1
+            );
 
 
     ctx.textAlign =
         "center";
+
+
+    /* =====================================
+       TITLE
+    ===================================== */
+
+    const titleSize =
+        mobile
+            ? Math.max(
+                28,
+                48 * scale
+            )
+            : Math.max(
+                42,
+                64 * scale
+            );
+
+
+    const titleTop =
+        mobile ? 45 : 55;
 
 
     ctx.shadowBlur = 30;
@@ -1687,43 +1505,24 @@ function drawStartScreen() {
         "#00ff88";
 
 
-    const titleSize =
-        mobile
-            ? Math.max(
-                30,
-                55 * scale
-            )
-            : 68;
-
-
     ctx.font =
         `bold ${titleSize}px Arial`;
-
-
-    const titleY =
-        mobile
-            ? canvas.height * 0.27
-            : canvas.height / 2 - 100;
 
 
     if (mobile) {
 
         ctx.fillText(
             "THE LAST",
-
             canvas.width / 2,
-
-            titleY
+            titleTop + titleSize
         );
 
 
         ctx.fillText(
             "60 SECONDS",
-
             canvas.width / 2,
-
-            titleY +
-            titleSize * 1.15
+            titleTop +
+            titleSize * 2.05
         );
 
     }
@@ -1732,10 +1531,8 @@ function drawStartScreen() {
 
         ctx.fillText(
             "THE LAST 60 SECONDS",
-
             canvas.width / 2,
-
-            titleY
+            titleTop + titleSize
         );
 
     }
@@ -1744,24 +1541,109 @@ function drawStartScreen() {
     ctx.shadowBlur = 0;
 
 
+    /* =====================================
+       TAGLINE
+    ===================================== */
+
+    const taglineY =
+        mobile
+            ? titleTop +
+              titleSize * 2.55
+            : titleTop +
+              titleSize * 1.65;
+
+
     ctx.fillStyle =
-        "white";
+        "#00d9ff";
 
 
     ctx.font =
-        `${mobile ? 15 : 20}px Arial`;
+        `bold ${mobile ? 13 : 18}px Arial`;
 
 
     ctx.fillText(
-        "Collect points. Avoid bugs. Regret everything.",
-
+        "60 seconds. Infinite bugs. Zero sympathy.",
         canvas.width / 2,
+        taglineY
+    );
 
+
+    /* =====================================
+       INSTRUCTION AREA
+    ===================================== */
+
+    const boxWidth =
         mobile
-            ? titleY +
-              titleSize * 2 +
-              35
-            : canvas.height / 2 - 45
+            ? canvas.width - 36
+            : Math.min(
+                650,
+                canvas.width - 80
+            );
+
+
+    const boxX =
+        (canvas.width - boxWidth) / 2;
+
+
+    const boxTop =
+        taglineY + 34;
+
+
+    /* =====================================
+       HEADING
+    ===================================== */
+
+    ctx.textAlign =
+        "left";
+
+
+    ctx.fillStyle =
+        "#ffffff";
+
+
+    ctx.font =
+        `bold ${mobile ? 14 : 18}px Arial`;
+
+
+    ctx.fillText(
+        "HOW TO SURVIVE:",
+        boxX,
+        boxTop
+    );
+
+
+    /* =====================================
+       ROW SETTINGS
+    ===================================== */
+
+    const rowGap =
+        mobile ? 31 : 35;
+
+
+    const textSize =
+        mobile ? 12 : 15;
+
+
+    const firstRow =
+        boxTop + rowGap;
+
+
+    /* =====================================
+       YOU
+    ===================================== */
+
+    ctx.fillStyle =
+        "#00ff88";
+
+
+    ctx.font =
+        `bold ${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "● YOU",
+        boxX,
+        firstRow
     );
 
 
@@ -1770,40 +1652,260 @@ function drawStartScreen() {
 
 
     ctx.font =
-        `${mobile ? 13 : 18}px Arial`;
+        `${textSize}px Arial`;
 
 
     ctx.fillText(
-        "The longer you survive, the worse your life gets.",
-
-        canvas.width / 2,
-
-        mobile
-            ? titleY +
-              titleSize * 2 +
-              62
-            : canvas.height / 2
+        "Move around and collect the glowing points.",
+        boxX +
+        (mobile ? 60 : 70),
+        firstRow
     );
 
 
-    if (!mobile) {
+    /* =====================================
+       POINTS
+    ===================================== */
 
-        ctx.fillStyle =
-            "#666";
-
-        ctx.font =
-            "14px Arial";
+    const pointsY =
+        firstRow + rowGap;
 
 
-        ctx.fillText(
-            "WASD / ARROW KEYS",
+    ctx.fillStyle =
+        "#00d9ff";
 
-            canvas.width / 2,
 
-            canvas.height / 2 + 135
-        );
+    ctx.font =
+        `bold ${textSize}px Arial`;
 
-    }
+
+    ctx.fillText(
+        "● POINTS",
+        boxX,
+        pointsY
+    );
+
+
+    ctx.fillStyle =
+        "#aaa";
+
+
+    ctx.font =
+        `${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "Collect them to increase your score.",
+        boxX +
+        (mobile ? 80 : 90),
+        pointsY
+    );
+
+
+    /* =====================================
+       BUGS
+    ===================================== */
+
+    const bugsY =
+        pointsY + rowGap;
+
+
+    ctx.fillStyle =
+        "#ff304f";
+
+
+    ctx.font =
+        `bold ${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "● BUGS",
+        boxX,
+        bugsY
+    );
+
+
+    ctx.fillStyle =
+        "#aaa";
+
+
+    ctx.font =
+        `${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "Touch one and you're cooked.",
+        boxX +
+        (mobile ? 68 : 78),
+        bugsY
+    );
+
+
+    /* =====================================
+       MORE BUGS
+    ===================================== */
+
+    const moreBugsY =
+        bugsY + rowGap;
+
+
+    ctx.fillStyle =
+        "#ffcc00";
+
+
+    ctx.font =
+        `bold ${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "● MORE BUGS",
+        boxX,
+        moreBugsY
+    );
+
+
+    ctx.fillStyle =
+        "#aaa";
+
+
+    ctx.font =
+        `${textSize}px Arial`;
+
+
+    ctx.fillText(
+        "Because apparently one wasn't enough.",
+        boxX +
+        (mobile ? 105 : 120),
+        moreBugsY
+    );
+
+
+    /* =====================================
+       CONTROLS
+    ===================================== */
+
+    const controlsY =
+        moreBugsY +
+        rowGap +
+        18;
+
+
+    ctx.fillStyle =
+        "#ffffff";
+
+
+    ctx.font =
+        `bold ${mobile ? 14 : 17}px Arial`;
+
+
+    ctx.fillText(
+        "CONTROLS",
+        boxX,
+        controlsY
+    );
+
+
+    ctx.fillStyle =
+        "#888";
+
+
+    ctx.font =
+        `${mobile ? 12 : 14}px Arial`;
+
+
+    ctx.fillText(
+        mobile
+            ? "Drag the joystick to move."
+            : "WASD / Arrow Keys to move.",
+        boxX,
+        controlsY + 25
+    );
+
+
+    /* =====================================
+       GOAL
+    ===================================== */
+
+    const goalY =
+        controlsY + 58;
+
+
+    ctx.fillStyle =
+        "#00d9ff";
+
+
+    ctx.font =
+        `bold ${mobile ? 14 : 17}px Arial`;
+
+
+    ctx.fillText(
+        "GOAL",
+        boxX,
+        goalY
+    );
+
+
+    ctx.fillStyle =
+        "#aaa";
+
+
+    ctx.font =
+        `${mobile ? 12 : 14}px Arial`;
+
+
+    ctx.fillText(
+        "Get the highest score before the 60 seconds are gone.",
+        boxX,
+        goalY + 25
+    );
+
+
+    /* =====================================
+       START
+    ===================================== */
+
+    const startY =
+        goalY + 70;
+
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.fillStyle =
+        "#00ff88";
+
+
+    ctx.font =
+        `bold ${mobile ? 15 : 20}px Arial`;
+
+
+    ctx.fillText(
+        mobile
+            ? "TAP TO START"
+            : "[ ENTER ] START",
+        canvas.width / 2,
+        startY
+    );
+
+
+    /* =====================================
+       FOOTER
+    ===================================== */
+
+    ctx.fillStyle =
+        "#555";
+
+
+    ctx.font =
+        `${mobile ? 10 : 12}px Arial`;
+
+
+    ctx.fillText(
+        "Survival is optional. The deadline isn't.",
+        canvas.width / 2,
+        startY + 25
+    );
 
 
     ctx.textAlign =
@@ -1870,9 +1972,7 @@ function getComment() {
 
 function saveBestScore() {
 
-    if (
-        score > bestScore
-    ) {
+    if (score > bestScore) {
 
         bestScore =
             score;
@@ -1982,9 +2082,7 @@ function drawEndScreen() {
 
     ctx.fillText(
         `SCORE: ${score}`,
-
         canvas.width / 2,
-
         canvas.height * 0.45
     );
 
@@ -1999,9 +2097,7 @@ function drawEndScreen() {
 
     ctx.fillText(
         `BEST: ${bestScore}`,
-
         canvas.width / 2,
-
         canvas.height * 0.50
     );
 
@@ -2016,9 +2112,7 @@ function drawEndScreen() {
 
     ctx.fillText(
         `RATING: ${getRating()}`,
-
         canvas.width / 2,
-
         canvas.height * 0.57
     );
 
@@ -2033,9 +2127,7 @@ function drawEndScreen() {
 
     ctx.fillText(
         `"${getComment()}"`,
-
         canvas.width / 2,
-
         canvas.height * 0.63
     );
 
@@ -2051,9 +2143,7 @@ function drawEndScreen() {
 
         ctx.fillText(
             "[ R ] TRY AGAIN",
-
             canvas.width / 2,
-
             canvas.height * 0.72
         );
 
@@ -2087,9 +2177,7 @@ function draw() {
     drawGrid();
 
 
-    if (
-        gameState === "start"
-    ) {
+    if (gameState === "start") {
 
         drawStartScreen();
 
@@ -2101,22 +2189,16 @@ function draw() {
     ctx.save();
 
 
-    if (
-        screenShake > 0
-    ) {
+    if (screenShake > 0) {
 
         ctx.translate(
             (
-                Math.random() -
-                0.5
-            ) *
-            screenShake,
+                Math.random() - 0.5
+            ) * screenShake,
 
             (
-                Math.random() -
-                0.5
-            ) *
-            screenShake
+                Math.random() - 0.5
+            ) * screenShake
         );
 
     }
@@ -2149,9 +2231,7 @@ function draw() {
     }
 
 
-    if (
-        flash > 0
-    ) {
+    if (flash > 0) {
 
         ctx.fillStyle =
             `rgba(
@@ -2160,6 +2240,7 @@ function draw() {
                 79,
                 ${flash}
             )`;
+
 
         ctx.fillRect(
             0,
@@ -2177,39 +2258,30 @@ function draw() {
    TIMER
 ========================================= */
 
-setInterval(
-    () => {
+setInterval(() => {
 
-        if (
-            gameState === "playing"
-        ) {
+    if (gameState === "playing") {
 
-            timeLeft--;
+        timeLeft--;
 
 
-            if (
-                timeLeft <= 0
-            ) {
+        if (timeLeft <= 0) {
 
-                timeLeft = 0;
+            timeLeft = 0;
 
-                gameState =
-                    "won";
+            gameState = "won";
 
-                saveBestScore();
+            saveBestScore();
 
-                resetJoystick();
+            resetJoystick();
 
-                updateMobileButton();
-
-            }
+            updateMobileButton();
 
         }
 
-    },
+    }
 
-    1000
-);
+}, 1000);
 
 
 /* =========================================
